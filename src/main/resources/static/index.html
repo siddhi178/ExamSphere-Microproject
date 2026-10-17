@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamSphere | KCCEMSR Examination Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FIX: Configure Tailwind to use class-based dark mode instead of system preferences -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        min-height: 100%;
+    }
+
+    body {
+        background: #FFFFFF !important;
+        color: #172033 !important;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Main layout */
+    main {
+        background: #FFFFFF !important;
+    }
+
+    .custom-sidebar {
+        background: linear-gradient(180deg, #818CF8 0%, #4F46E5 100%) !important;
+        box-shadow: 8px 0 30px rgba(79, 70, 229, 0.2) !important;
+    }
+
+    .custom-sidebar .border-b,
+    .custom-sidebar .border-t {
+        border-color: rgba(255,255,255,0.18) !important;
+    }
+
+    .custom-card {
+        background: #FFFFFF !important;
+        border-color: #E5EBF5 !important;
+        border-radius: 18px !important;
+        box-shadow: 0 5px 20px rgba(36, 52, 80, 0.055) !important;
+    }
+
+    /* Global inputs */
+    input,
+    textarea,
+    select {
+        background: #F7FAFF !important;
+        border-color: #D7E3F2 !important;
+        color: #172033 !important;
+        border-radius: 12px !important;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: #94A3B8 !important;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        background: #FFFFFF !important;
+        border-color: #4F86F7 !important;
+        box-shadow: 0 0 0 3px rgba(79, 134, 247, 0.14) !important;
+        outline: none !important;
+    }
+
+    /* Buttons */
+    button.bg-\[\#75B9BF\],
+    button.bg-\[\#5CCBC5\] {
+        background: linear-gradient(135deg, #4F86F7, #6366F1) !important;
+        border: none !important;
+    }
+
+    button.bg-\[\#75B9BF\]:hover,
+    button.bg-\[\#5CCBC5\]:hover {
+        background: linear-gradient(135deg, #3E73E8, #5558E8) !important;
+        transform: translateY(-1px);
+    }
+
+    .bg-\[\#F2ECE1\] {
+        background: #F7FAFF !important;
+    }
+
+    .border-\[\#E6C4B7\] {
+        border-color: #DCE6F3 !important;
+    }
+
+    .bg-\[\#75B9BF\] {
+        background: linear-gradient(135deg, #4F86F7, #6366F1) !important;
+    }
+
+    .hover\:bg-\[\#5da2a7\]:hover {
+        background: #3E73E8 !important;
+    }
+
+    /* Faculty + Student sidebar navigation */
+    .custom-sidebar nav button {
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+        font-weight: 700 !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .custom-sidebar nav button:hover {
+        background: #FFFFFF !important;
+        color: #416FE0 !important;
+        transform: translateX(4px);
+        box-shadow: 0 6px 18px rgba(25, 63, 160, 0.20) !important;
+    }
+
+    .custom-sidebar nav button.bg-white {
+        background: #FFFFFF !important;
+        color: #416FE0 !important;
+        font-weight: 800 !important;
+        box-shadow: 0 6px 18px rgba(25, 63, 160, 0.20) !important;
+    }
+
+    .custom-sidebar nav button:hover *,
+    .custom-sidebar nav button.bg-white * {
+        color: inherit !important;
+        opacity: 1 !important;
+    }
+
+    .custom-sidebar .bg-white\/20 {
+        background: rgba(255,255,255,0.18) !important;
+        color: #FFFFFF !important;
+    }
+
+    .custom-sidebar button.bg-rose-500\/20 {
+        background: rgba(255,255,255,0.14) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255,255,255,0.16) !important;
+    }
+
+    .custom-sidebar button.bg-rose-500\/20:hover {
+        background: #FF5B7F !important;
+        border-color: #FF5B7F !important;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
+    }
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-float-delayed { animation: float 7s ease-in-out 3s infinite; }
+
+    .pastel-teal {
+        background: #DDF8F5 !important;
+        color: #087F70 !important;
+        border-color: #BCEDE5 !important;
+    }
+
+    .pastel-rose {
+        background: #FFE7EF !important;
+        color: #B63865 !important;
+        border-color: #FFD0DF !important;
+    }
+
+    .pastel-dogwood {
+        background: #EEE9FF !important;
+        color: #6547B8 !important;
+        border-color: #DDD3FF !important;
+    }
+
+    #statTotalStudents { color: #4F86F7 !important; }
+    #statTotalExams { color: #7658E8 !important; }
+    #statTotalSubmissions { color: #08A66D !important; }
+
+    .grid.grid-cols-3 > div {
+        background: linear-gradient(135deg, #E9F4FF, #F6FAFF) !important;
+        border: 1px solid #C9E0FF !important;
+        border-radius: 16px !important;
+    }
+
+    .grid.grid-cols-3 > div:nth-child(2) {
+        background: linear-gradient(135deg, #F0EAFF, #FAF8FF) !important;
+        border-color: #D9CAFF !important;
+    }
+
+    .grid.grid-cols-3 > div:nth-child(3) {
+        background: linear-gradient(135deg, #FFEAF2, #FFF8FB) !important;
+        border-color: #FFC9DD !important;
+    }
+
+    .space-y-3 > div {
+        background: linear-gradient(135deg, #EEF6FF, #F8FBFF) !important;
+        border-color: #D2E3FA !important;
+        border-radius: 14px !important;
+    }
+
+    .space-y-3 > div span:last-child { color: #4F86F7 !important; }
+
+    table thead tr {
+        background: linear-gradient(90deg, #EEF5FF, #F4F0FF) !important;
+        color: #475569 !important;
+    }
+
+    table tbody tr { border-color: #E7EDF5 !important; }
+    table tbody tr:hover { background: #F7FAFF !important; }
+
+    #teacherQuestionList > div,
+    #studentExamList > div,
+    #studentCompletedList > div,
+    #quizQuestions > div,
+    #teacherStudentList > div {
+        background: #FFFFFF !important;
+        border-color: #DDE7F3 !important;
+        border-radius: 16px !important;
+    }
+
+    #teacherQuestionList > div:hover,
+    #studentExamList > div:hover,
+    #studentCompletedList > div:hover {
+        border-color: #BBD1FF !important;
+        box-shadow: 0 7px 22px rgba(79, 134, 247, 0.09) !important;
+    }
+
+    #statEvaluated { color: #168F9A !important; }
+    #statPassed { color: #08A66D !important; }
+    #statFailed { color: #D84A70 !important; }
+
+    .bg-emerald-50 { background: #E7FAF2 !important; }
+    .bg-emerald-100 { background: #D6F6E8 !important; }
+    .text-emerald-600 { color: #079669 !important; }
+    .text-emerald-700, .text-emerald-800, .text-emerald-900 { color: #087F5B !important; }
+
+    .bg-rose-50 { background: #FFF0F4 !important; }
+    .bg-rose-100 { background: #FFE1EA !important; }
+    .text-rose-600, .text-rose-700, .text-rose-800 { color: #C23B63 !important; }
+
+    .bg-amber-50 { background: #FFF5D9 !important; }
+    .text-amber-700 { color: #A56A00 !important; }
+
+    #scoreDisplay {
+        background: linear-gradient(135deg, #4F86F7, #7C5CFC);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    hr { border-color: #E7ECF5 !important; }
+    ::selection { background: #DCE8FF; color: #172033; }
+
+    /* LIGHT / DARK MODE */
+    #themeToggle {
+        position: fixed;
+        top: 18px;
+        right: 22px;
+        z-index: 9999;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid #DCE6F5;
+        background: rgba(255,255,255,0.94);
+        color: #416FE0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 7px 22px rgba(40, 70, 130, 0.12);
+        backdrop-filter: blur(10px);
+        transition: all 0.2s ease;
+    }
+
+    #themeToggle:hover {
+        transform: translateY(-2px) scale(1.04);
+        background: #FFFFFF;
+        box-shadow: 0 10px 26px rgba(40, 70, 130, 0.18);
+    }
+
+    body.dark-mode {
+        background: #0F172A !important;
+        color: #E5E7EB !important;
+    }
+
+    body.dark-mode #themeToggle {
+        background: #1E293B;
+        color: #FACC15;
+        border-color: #334155;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    body.dark-mode #themeToggle:hover {
+        background: #273449;
+        color: #FDE68A;
+    }
+
+    body.dark-mode main,
+    body.dark-mode #teacherDashboard main,
+    body.dark-mode #studentDashboard main {
+        background: #0F172A !important;
+    }
+
+    body.dark-mode .custom-card {
+        background: #172033 !important;
+        border-color: #2B3950 !important;
+        color: #E5E7EB !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.18) !important;
+    }
+
+    body.dark-mode .custom-card h1,
+    body.dark-mode .custom-card h2,
+    body.dark-mode .custom-card h3,
+    body.dark-mode .custom-card h4,
+    body.dark-mode .custom-card p,
+    body.dark-mode .custom-card label {
+        color: #E8EEF8;
+    }
+
+    body.dark-mode .text-slate-800 { color: #F1F5F9 !important; }
+    body.dark-mode .text-slate-700 { color: #E2E8F0 !important; }
+    body.dark-mode .text-slate-600 { color: #CBD5E1 !important; }
+    body.dark-mode .text-slate-500 { color: #AAB7C9 !important; }
+    body.dark-mode .text-slate-400 { color: #8FA0B5 !important; }
+
+    body.dark-mode input,
+    body.dark-mode textarea,
+    body.dark-mode select {
+        background: #111C2E !important;
+        color: #F1F5F9 !important;
+        border-color: #34445D !important;
+    }
+
+    body.dark-mode input::placeholder,
+    body.dark-mode textarea::placeholder {
+        color: #718198 !important;
+    }
+
+    body.dark-mode input:focus,
+    body.dark-mode textarea:focus,
+    body.dark-mode select:focus {
+        background: #172033 !important;
+        border-color: #6EA0FF !important;
+        box-shadow: 0 0 0 3px rgba(79, 134, 247, 0.22) !important;
+    }
+
+    body.dark-mode table thead tr {
+        background: linear-gradient(90deg, #1C2A40, #25213E) !important;
+        color: #DCE7F7 !important;
+    }
+
+    body.dark-mode table tbody tr { border-color: #2B3950 !important; }
+    body.dark-mode table tbody tr:hover { background: #1B2638 !important; }
+
+    body.dark-mode .grid.grid-cols-3 > div {
+        background: linear-gradient(135deg, #152A40, #18263A) !important;
+        border-color: #29496B !important;
+    }
+
+    body.dark-mode .grid.grid-cols-3 > div:nth-child(2) {
+        background: linear-gradient(135deg, #241E3B, #211D32) !important;
+        border-color: #51437A !important;
+    }
+
+    body.dark-mode .grid.grid-cols-3 > div:nth-child(3) {
+        background: linear-gradient(135deg, #3A202B, #30202A) !important;
+        border-color: #704054 !important;
+    }
+
+    body.dark-mode .space-y-3 > div {
+        background: linear-gradient(135deg, #16283E, #172033) !important;
+        border-color: #30455F !important;
+    }
+
+    body.dark-mode #teacherQuestionList > div,
+    body.dark-mode #studentExamList > div,
+    body.dark-mode #studentCompletedList > div,
+    body.dark-mode #quizQuestions > div,
+    body.dark-mode #teacherStudentList > div {
+        background: #172033 !important;
+        border-color: #2E3E55 !important;
+        color: #E5E7EB !important;
+    }
+
+    body.dark-mode #teacherQuestionList > div:hover,
+    body.dark-mode #studentExamList > div:hover,
+    body.dark-mode #studentCompletedList > div:hover {
+        background: #1B2940 !important;
+        border-color: #5C86D9 !important;
+    }
+
+    body.dark-mode #loginScreen {
+        background: 
+            radial-gradient(circle at 8% 15%, #172A4A 0, transparent 28%),
+            radial-gradient(circle at 92% 85%, #292044 0, transparent 28%),
+            #0F172A !important;
+    }
+
+    body.dark-mode .custom-sidebar {
+        background: linear-gradient(180deg, #356FE0 0%, #4C50C9 100%) !important;
+    }
+
+    body.dark-mode hr { border-color: #2B3950 !important; }
+    body.dark-mode .bg-emerald-50 { background: #12382D !important; }
+    body.dark-mode .bg-emerald-100 { background: #174A3A !important; }
+    body.dark-mode .bg-rose-50 { background: #3A1C28 !important; }
+    body.dark-mode .bg-rose-100 { background: #4B2030 !important; }
+    body.dark-mode .bg-amber-50 { background: #3A2C12 !important; }
+
+    body.dark-mode .pastel-teal {
+        background: #123C3A !important;
+        color: #6FE3D7 !important;
+        border-color: #1D625D !important;
+    }
+
+    body.dark-mode .pastel-rose {
+        background: #421E2C !important;
+        color: #FF9DBA !important;
+        border-color: #6B3047 !important;
+    }
+
+    body.dark-mode .pastel-dogwood {
+        background: #2A2147 !important;
+        color: #C4B4FF !important;
+        border-color: #4A3B73 !important;
+    }
+
+    body.dark-mode .custom-sidebar nav button:hover,
+    body.dark-mode .custom-sidebar nav button.bg-white {
+        background: #FFFFFF !important;
+        color: #416FE0 !important;
+    }
+
+    body.dark-mode .custom-sidebar nav button:hover *,
+    body.dark-mode .custom-sidebar nav button.bg-white * {
+        color: #416FE0 !important;
+    }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+    <button id="themeToggle" type="button" onclick="toggleTheme()" aria-label="Switch to dark mode" title="Switch theme">🌙</button>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+        
+        <!-- Animated Background Blobs -->
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-400/25 dark:bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-96 h-96 bg-blue-400/25 dark:bg-blue-600/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float-delayed"></div>
+        <div class="absolute top-[20%] left-[60%] w-72 h-72 bg-purple-400/25 dark:bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float" style="animation-delay: 1.5s;"></div>
+
+      
+
+        <div class="custom-card w-full max-w-md !shadow-2xl relative z-10 backdrop-blur-sm bg-white/90 dark:bg-slate-900/90 p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div class="text-center mb-6">
+                <span class="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider">KCCEMSR - IT DEPT</span>
+                <h1 class="text-3xl font-black mt-4 text-slate-900 dark:text-white tracking-tight">ExamSphere</h1>
+                <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 font-semibold">Secure Assessment Portal</p>
+            </div>
+
+            <!-- Role Toggle -->
+            <div class="flex bg-slate-100 dark:bg-slate-950/50 p-1 rounded-xl mb-6 border border-slate-200 dark:border-slate-800">
+                <button id="tabStudent" onclick="switchLoginTab('student')" class="flex-1 py-2.5 rounded-lg text-sm font-bold bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all">🎓 Student</button>
+                <button id="tabFaculty" onclick="switchLoginTab('faculty')" class="flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all">👨‍🏫 Faculty</button>
+            </div>
+
+            <div id="loginFormArea" class="space-y-5 fade-in">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="Student Email (e.g. it26@kccemsr.edu.in)" class="w-full p-3 transition-all font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" class="w-full p-3 transition-all font-medium">
+                </div>
+                <button onclick="handleLogin()" id="loginBtnText" class="w-full bg-[#75B9BF] text-white font-bold py-3.5 rounded-xl hover:bg-[#3E73E8] transition shadow-md text-sm mt-2">Login as Student</button>
+                <p id="loginError" class="text-rose-600 dark:text-rose-400 text-xs text-center font-semibold hidden bg-rose-50 dark:bg-rose-900/20 py-2 rounded-lg border border-rose-200 dark:border-rose-800">Invalid credentials.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEACHER DASHBOARD -->
+    <div id="teacherDashboard" class="hidden min-h-screen flex">
+        <aside class="w-72 custom-sidebar text-white flex flex-col justify-between shadow-xl z-20">
+            <div>
+                <div class="p-6 border-b border-[#63a2a7]">
+                    <span class="bg-white/20 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase">Faculty Panel</span>
+                    <h2 class="font-black text-lg mt-2">ExamSphere Pro</h2>
+                    <p class="text-xs text-white/80">KCCEMSR Information Technology</p>
+                </div>
+                <nav class="p-4 space-y-1.5 text-sm font-semibold">
+                    <button onclick="switchTab('overview')" id="nav-overview" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-[#75B9BF] transition-all shadow-sm font-bold">📊 Overview & Analytics</button>
+                    <button onclick="switchTab('students')" id="nav-students" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">👥 Manage Students</button>
+                    <button onclick="switchTab('quiz')" id="nav-quiz" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">📝 Google-Style Quiz Builder</button>
+                    <button onclick="switchTab('theory')" id="nav-theory" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">📋 Theory Exam Marks</button>
+                    <button onclick="switchTab('responses')" id="nav-responses" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">📈 Quiz Responses & Scores</button>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-[#63a2a7]">
+                <button onclick="logout()" class="w-full bg-rose-500/20 text-white hover:bg-rose-500 font-bold py-2.5 rounded-xl text-xs transition-all">Sign Out</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto max-h-screen">
+            <!-- TAB 1: OVERVIEW -->
+            <section id="tab-overview" class="space-y-6 fade-in">
+                <div class="custom-card p-6 rounded-2xl shadow-xs border flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-800">Welcome, Professor</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Online Examination & Result Management System Control Desk</p>
+                    </div>
+                    <button onclick="downloadExcel()" class="bg-[#75B9BF] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:bg-[#3E73E8]">⬇ Export Master Excel Report</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                        <p class="text-xs font-bold uppercase text-slate-400 mb-1">Total Students</p>
+                        <p class="text-3xl font-black text-[#75B9BF]" id="statTotalStudents">0</p>
+                    </div>
+                    <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                        <p class="text-xs font-bold uppercase text-slate-400 mb-1">Active Examinations</p>
+                        <p class="text-3xl font-black text-slate-700" id="statTotalExams">0</p>
+                    </div>
+                    <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                        <p class="text-xs font-bold uppercase text-slate-400 mb-1">Quiz Submissions</p>
+                        <p class="text-3xl font-black text-emerald-600" id="statTotalSubmissions">0</p>
+                    </div>
+                    <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                        <p class="text-xs font-bold uppercase text-slate-400 mb-1">Department</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Information Technology</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                        <h3 class="text-base font-bold text-slate-800 mb-4">👥 Division-wise Student Distribution</h3>
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="bg-[#F2ECE1] p-4 rounded-xl border border-[#E6C4B7]">
+                                <p class="text-xs font-bold text-slate-500 uppercase">Division A</p>
+                                <p class="text-2xl font-black text-slate-800 mt-1" id="statDivA">0</p>
+                            </div>
+                            <div class="bg-[#F2ECE1] p-4 rounded-xl border border-[#E6C4B7]">
+                                <p class="text-xs font-bold text-slate-500 uppercase">Division B</p>
+                                <p class="text-2xl font-black text-slate-800 mt-1" id="statDivB">0</p>
+                            </div>
+                            <div class="bg-[#F2ECE1] p-4 rounded-xl border border-[#E6C4B7]">
+                                <p class="text-xs font-bold text-slate-500 uppercase">Division C</p>
+                                <p class="text-2xl font-black text-slate-800 mt-1" id="statDivC">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                        <h3 class="text-base font-bold text-slate-800 mb-4">🎓 Branch & Degree Analytics</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center bg-[#F2ECE1] p-3.5 rounded-xl border border-[#E6C4B7] text-xs">
+                                <span class="font-bold text-slate-600">Branch</span>
+                                <span class="font-extrabold text-[#75B9BF]">Information Technology (IT)</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-[#F2ECE1] p-3.5 rounded-xl border border-[#E6C4B7] text-xs">
+                                <span class="font-bold text-slate-600">Degree Program</span>
+                                <span class="font-extrabold text-[#75B9BF]">Direct Second Year B.Tech</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-card p-6 rounded-2xl border shadow-xs">
+                    <h3 class="text-base font-bold text-slate-800 mb-4">📈 Recent Quiz Submissions Activity</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-[#F2ECE1] border-b text-slate-600 uppercase">
+                                    <th class="p-3">Roll No</th><th class="p-3">Student Name</th><th class="p-3">Division</th><th class="p-3">Quiz Name</th><th class="p-3">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overviewRecentSubmissions">
+                                <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Loading activity feed...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: STUDENTS CRUD -->
+            <section id="tab-students" class="space-y-6 hidden fade-in">
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <h3 class="text-base font-bold text-slate-800 mb-4">Register New Student Profile</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                        <input type="text" id="regName" placeholder="Full Name" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                        <input type="email" id="regEmail" placeholder="Email (it26@kccemsr.edu.in)" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                        <input type="password" id="regPass" placeholder="Password" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+                        <input type="text" id="regDegree" placeholder="Degree (B.Tech)" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                        <input type="text" id="regBranch" placeholder="Branch (IT)" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                        <select id="regSem" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm font-semibold">
+                            <option value="Sem 1">Sem 1</option><option value="Sem 2">Sem 2</option><option value="Sem 3">Sem 3</option>
+                            <option value="Sem 4">Sem 4</option><option value="Sem 5">Sem 5</option><option value="Sem 6" selected>Sem 6</option>
+                        </select>
+                        <select id="regDiv" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm font-semibold">
+                            <option value="A">Division A</option><option value="B">Division B</option><option value="C" selected>Division C</option>
+                        </select>
+                        <input type="text" id="regRoll" placeholder="Roll No (IT87)" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                    </div>
+                    <button onclick="registerStudent()" class="bg-[#75B9BF] text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-[#3E73E8] shadow-sm">Save Student to Database</button>
+                </div>
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <h3 class="text-base font-bold text-slate-800 mb-4">Student Database Directory & Management</h3>
+                    <div id="teacherStudentList" class="space-y-3"></div>
+                </div>
+            </section>
+
+            <!-- TAB 3: QUIZ BUILDER -->
+            <section id="tab-quiz" class="space-y-6 hidden fade-in">
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <h3 class="text-base font-bold text-slate-800 mb-4">Step 1: Create Assessment Metadata</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                        <input type="text" id="examName" placeholder="Exam Title (e.g. Java Test)" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                        <input type="text" id="subject" placeholder="Subject Name" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                        <input type="number" id="duration" placeholder="Duration (Minutes)" class="p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm">
+                    </div>
+                    <button onclick="createExam()" class="bg-[#75B9BF] text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-[#3E73E8]">Deploy Assessment</button>
+                </div>
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <h3 class="text-base font-bold text-slate-800 mb-4">Step 2: Add Questions (Google Forms Style)</h3>
+                    <div class="space-y-4">
+                        <select id="examSelect" onchange="loadExamQuestionsForTeacher()" class="w-full p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm font-semibold">
+                            <option value="">-- Select Active Assessment --</option>
+                        </select>
+                        <textarea id="qText" placeholder="Type your question here..." rows="2" class="w-full p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm outline-none resize-none"></textarea>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="flex items-center gap-2"><span class="font-bold text-xs text-[#75B9BF]">A</span><input type="text" id="optA" placeholder="Option A" class="w-full p-2.5 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm"></div>
+                            <div class="flex items-center gap-2"><span class="font-bold text-xs text-[#75B9BF]">B</span><input type="text" id="optB" placeholder="Option B" class="w-full p-2.5 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm"></div>
+                            <div class="flex items-center gap-2"><span class="font-bold text-xs text-[#75B9BF]">C</span><input type="text" id="optC" placeholder="Option C" class="w-full p-2.5 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm"></div>
+                            <div class="flex items-center gap-2"><span class="font-bold text-xs text-[#75B9BF]">D</span><input type="text" id="optD" placeholder="Option D" class="w-full p-2.5 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm"></div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2">
+                            <select id="correctOpt" class="p-3 pastel-teal border rounded-xl text-sm font-bold">
+                                <option value="A">Correct Answer: Option A</option><option value="B">Correct Answer: Option B</option>
+                                <option value="C">Correct Answer: Option C</option><option value="D">Correct Answer: Option D</option>
+                            </select>
+                            <button onclick="addQuestion()" class="bg-[#75B9BF] text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-[#3E73E8] shadow-sm">+ Add Question to Quiz</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="custom-card p-6 rounded-2xl shadow-xs border space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="text-base font-bold text-slate-800">📋 Live Quiz Question Preview</h3>
+                        <button onclick="publishCurrentExam()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-emerald-700 shadow-md">🚀 Publish Quiz</button>
+                    </div>
+                    <div id="teacherQuestionList" class="space-y-3"><p class="text-slate-400 text-xs italic">Select an assessment above.</p></div>
+                </div>
+            </section>
+
+            <!-- TAB 4: THEORY EXAM MARKS -->
+            <section id="tab-theory" class="space-y-6 hidden fade-in">
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-base font-bold text-slate-800">Theory Exam Marks Entry & Analytics (6 Subjects)</h3>
+                        <button onclick="downloadTheoryExcel()" class="bg-[#75B9BF] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:bg-[#3E73E8]">⬇ Export Theory Excel Report</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6 bg-[#F2ECE1] p-4 rounded-xl border border-[#E6C4B7]">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Select Semester</label>
+                            <select id="theorySemester" class="w-full p-2.5 bg-white border border-[#E6C4B7] rounded-xl text-sm font-bold">
+                                <option value="1">Semester 1</option><option value="2">Semester 2</option><option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option><option value="5">Semester 5</option><option value="6" selected>Semester 6</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Select Subject (1-6)</label>
+                            <select id="theorySubjectSelect" onchange="renderTheoryTable()" class="w-full p-2.5 bg-white border border-[#E6C4B7] rounded-xl text-sm font-bold">
+                                <option value="1">Subject 1: Java Programming</option><option value="2">Subject 2: Operating Systems</option>
+                                <option value="3">Subject 3: Data Structures</option><option value="4">Subject 4: DBMS</option>
+                                <option value="5">Subject 5: Software Engineering</option><option value="6">Subject 6: Computer Networks</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Max Marks</label>
+                            <input type="number" id="theoryMaxMarks" value="20" onchange="renderTheoryTable()" class="w-full p-2.5 bg-white border border-[#E6C4B7] rounded-xl text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Passing Marks</label>
+                            <input type="number" id="theoryPassMarks" value="8" onchange="renderTheoryTable()" class="w-full p-2.5 bg-white border border-[#E6C4B7] rounded-xl text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Select Division</label>
+                            <select id="theoryFilterDiv" onchange="renderTheoryTable()" class="w-full p-2.5 bg-white border border-[#E6C4B7] rounded-xl text-sm font-bold">
+                                <option value="A">Division A</option><option value="B">Division B</option><option value="C" selected>Division C</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div class="pastel-teal p-4 rounded-xl text-center border border-[#75B9BF]/30"><p class="text-xs font-bold uppercase mb-1">Total Evaluated</p><p class="text-2xl font-black" id="statEvaluated">0</p></div>
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center text-emerald-900"><p class="text-xs font-bold uppercase text-emerald-600 mb-1">Passed Students</p><p class="text-2xl font-black" id="statPassed">0</p></div>
+                        <div class="pastel-rose p-4 rounded-xl text-center border border-[#FCDDD3]"><p class="text-xs font-bold uppercase text-rose-700 mb-1">Failed Students</p><p class="text-2xl font-black" id="statFailed">0</p></div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-[#F2ECE1] border-b text-slate-600 uppercase">
+                                    <th class="p-3">Roll No</th><th class="p-3">Student Name</th><th class="p-3">Division</th>
+                                    <th class="p-3" id="thSubjectHeader">Marks (Out of 20)</th><th class="p-3">Status</th><th class="p-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="theoryMarksTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: QUIZ RESPONSES -->
+            <section id="tab-responses" class="space-y-6 hidden fade-in">
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <h3 class="text-base font-bold text-slate-800 mb-4">Student Quiz Submissions & Retake Management</h3>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Select Assessment to View Responses</label>
+                        <select id="responseExamSelect" onchange="loadExamResponses()" class="w-full sm:w-80 p-3 bg-[#F2ECE1] border border-[#E6C4B7] rounded-xl text-sm font-bold">
+                            <option value="">-- Select Assessment --</option>
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-[#F2ECE1] border-b text-slate-600 uppercase">
+                                    <th class="p-3">Roll No</th><th class="p-3">Student Name</th><th class="p-3">Division</th>
+                                    <th class="p-3">Score</th><th class="p-3">Status</th><th class="p-3">Retake Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quizResponsesTableBody"><tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Select an exam.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- STUDENT DASHBOARD -->
+    <div id="studentDashboard" class="hidden min-h-screen flex">
+        <aside class="w-72 custom-sidebar text-white flex flex-col justify-between shadow-xl z-20">
+            <div>
+                <div class="p-6 border-b border-[#63a2a7]">
+                    <span class="bg-white/20 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase">Student Portal</span>
+                    <h2 class="font-black text-lg mt-2" id="sidebarStudentName">Student</h2>
+                    <p class="text-xs text-white/80" id="sidebarStudentMeta">KCCEMSR IT</p>
+                </div>
+                <nav class="p-4 space-y-1.5 text-sm font-semibold">
+                    <button onclick="switchStudentTab('active')" id="stuNav-active" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-[#75B9BF] transition-all shadow-sm font-bold">📝 Available Quizzes</button>
+                    <button onclick="switchStudentTab('completed')" id="stuNav-completed" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">✅ Completed Quizzes</button>
+                    <button onclick="switchStudentTab('theoryresults')" id="stuNav-theoryresults" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">📋 Theory Exam Results</button>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-[#63a2a7]">
+                <button onclick="logout()" class="w-full bg-rose-500/20 text-white hover:bg-rose-500 font-bold py-2.5 rounded-xl text-xs transition-all">Sign Out</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto max-h-screen">
+            <div id="stuTab-active" class="space-y-4 fade-in">
+                <h3 class="text-xl font-black text-slate-800 mb-2">Available Examinations</h3>
+                <div id="studentExamList" class="grid gap-4"></div>
+            </div>
+
+            <div id="stuTab-completed" class="space-y-4 hidden fade-in">
+                <h3 class="text-xl font-black text-slate-800 mb-2">Your Completed Quizzes & Scorecards</h3>
+                <div id="studentCompletedList" class="grid gap-4"></div>
+            </div>
+
+            <div id="stuTab-theoryresults" class="space-y-4 hidden fade-in">
+                <h3 class="text-xl font-black text-slate-800 mb-2">Theory Exam Subject Marks</h3>
+                <div class="custom-card p-6 rounded-2xl shadow-xs border">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-[#F2ECE1] border-b text-slate-600 uppercase">
+                                    <th class="p-3">Subject Name</th><th class="p-3">Semester</th><th class="p-3">Marks Obtained</th><th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTheoryResultsBody">
+                                <tr><td colspan="4" class="p-4 text-center text-slate-400 italic">No theory marks graded by faculty for your account yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quizSection" class="hidden custom-card p-8 rounded-2xl shadow-xl border">
+                <div class="flex justify-between items-center border-b pb-4 mb-6">
+                    <h3 id="quizTitle" class="text-xl font-bold text-slate-800"></h3>
+                    <span class="bg-[#75B9BF] text-white font-mono px-4 py-2 rounded-xl text-sm">Timer: <span id="timer">60:00</span></span>
+                </div>
+                <div id="quizQuestions" class="space-y-6 mb-8"></div>
+                <button onclick="submitQuiz()" class="w-full bg-[#75B9BF] text-white font-bold py-3.5 rounded-xl hover:bg-[#3E73E8] shadow-md">Submit Answers</button>
+            </div>
+
+            <div id="resultSection" class="hidden text-center py-16">
+                <h2 class="text-3xl font-black text-slate-800 mb-2">Assessment Concluded</h2>
+                <div class="custom-card p-8 rounded-2xl shadow-xs border inline-block shadow-sm">
+                    <p class="text-xs font-bold uppercase text-slate-400 mb-1">Final Score</p>
+                    <p class="text-5xl font-black text-emerald-600" id="scoreDisplay"></p>
+                </div>
+                <div class="mt-6"><button onclick="switchStudentTab('completed')" class="bg-[#75B9BF] text-white px-6 py-2.5 rounded-xl text-sm font-bold">View Completed Quizzes</button></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function applyTheme(theme) {
+            const isDark = theme === "dark";
+            
+            // FIX: Added Tailwind standard dark mode handling alongside custom CSS handler
+            document.documentElement.classList.toggle("dark", isDark);
+            document.body.classList.toggle("dark-mode", isDark);
+
+            const button = document.getElementById("themeToggle");
+            const loginButton = document.getElementById("themeToggleLogin");
+            
+            const iconText = isDark ? "☀️" : "🌙";
+            const ariaLabelText = isDark ? "Switch to light mode" : "Switch to dark mode";
+
+            if (button) {
+                button.textContent = iconText;
+                button.setAttribute("aria-label", ariaLabelText);
+                button.setAttribute("title", ariaLabelText);
+            }
+            if (loginButton) {
+                loginButton.textContent = iconText;
+                loginButton.setAttribute("aria-label", ariaLabelText);
+                loginButton.setAttribute("title", ariaLabelText);
+            }
+
+            localStorage.setItem("examSphereTheme", isDark ? "dark" : "light");
+        }
+
+        function toggleTheme() {
+            const nextTheme = document.body.classList.contains("dark-mode") ? "light" : "dark";
+            applyTheme(nextTheme);
+        }
+
+        (function initializeTheme() {
+            // Force light mode by default and clear any old cached dark theme storage state
+            localStorage.setItem("examSphereTheme", "light");
+            applyTheme("light");
+        })();
+
+        const API_URL = "http://localhost:8080/api";
+        let currentQuizQuestions = [];
+        let loggedInStudent = null;
+        let globalStudents = [];
+        let currentActiveExamId = null;
+        let currentActiveExamName = '';
+
+        function switchTab(tabId) {
+            ['overview', 'students', 'quiz', 'theory', 'responses'].forEach(id => {
+                const el = document.getElementById(`tab-${id}`);
+                const nav = document.getElementById(`nav-${id}`);
+                if(el) el.classList.add('hidden');
+                if(nav) nav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all";
+            });
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            const targetNav = document.getElementById(`nav-${tabId}`);
+            if(targetTab) targetTab.classList.remove('hidden');
+            if(targetNav) targetNav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-[#75B9BF] transition-all shadow-sm font-bold";
+            if(tabId === 'theory') renderTheoryTable();
+            if(tabId === 'quiz') loadDropdownExams();
+            if(tabId === 'responses') loadResponseExamDropdown();
+        }
+
+        function switchStudentTab(tabId) {
+            ['active', 'completed', 'theoryresults'].forEach(id => {
+                const el = document.getElementById(`stuTab-${id}`);
+                const nav = document.getElementById(`stuNav-${id}`);
+                if(el) el.classList.add('hidden');
+                if(nav) nav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all";
+            });
+            document.getElementById(`stuTab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`stuNav-${tabId}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-[#75B9BF] transition-all shadow-sm font-bold";
+            
+            document.getElementById("quizSection").classList.add("hidden");
+            document.getElementById("resultSection").classList.add("hidden");
+
+            if(tabId === 'active') loadStudentExams();
+            if(tabId === 'completed') loadStudentCompletedQuizzes();
+            if(tabId === 'theoryresults') loadStudentTheoryResults();
+        }
+
+        let currentLoginRole = 'student';
+
+        function switchLoginTab(role) {
+            currentLoginRole = role;
+            const stuBtn = document.getElementById('tabStudent');
+            const facBtn = document.getElementById('tabFaculty');
+            const emailInput = document.getElementById('loginEmail');
+            const loginBtnText = document.getElementById('loginBtnText');
+            
+            const form = document.getElementById('loginFormArea');
+            form.classList.remove('fade-in');
+            void form.offsetWidth;
+            form.classList.add('fade-in');
+
+            if(role === 'student') {
+                stuBtn.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all';
+                facBtn.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all';
+                emailInput.placeholder = 'Student Email (e.g. it26@kccemsr.edu.in)';
+                loginBtnText.innerText = 'Login as Student';
+            } else {
+                facBtn.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all';
+                stuBtn.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all';
+                emailInput.placeholder = 'Faculty Email (teacher@kccemsr.edu.in)';
+                loginBtnText.innerText = 'Login as Faculty';
+            }
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+            const pass = document.getElementById("loginPassword").value;
+            const error = document.getElementById("loginError");
+            error.classList.add("hidden");
+
+            if (!email || !pass) {
+                error.innerText = "Please enter both email and password.";
+                error.classList.remove("hidden");
+                return;
+            }
+
+            if (currentLoginRole === 'faculty') {
+                if (email === "teacher@kccemsr.edu.in" && pass !== "") {
+                    document.getElementById("loginScreen").classList.add("hidden");
+                    document.getElementById("teacherDashboard").classList.remove("hidden");
+                    loadDropdownExams();
+                    loadDatabaseStudents();
+                } else {
+                    error.innerText = "Invalid Faculty credentials.";
+                    error.classList.remove("hidden");
+                }
+            } else {
+                if (email === "teacher@kccemsr.edu.in") {
+                    error.innerText = "Please use the Faculty tab to log in as a teacher.";
+                    error.classList.remove("hidden");
+                    return;
+                }
+                
+                try {
+                    const res = await fetch(`${API_URL}/users`);
+                    const users = await res.json();
+                    loggedInStudent = users.find(u => u.email === email && u.password === pass && u.role === "STUDENT");
+
+                    if (loggedInStudent) {
+                        document.getElementById("loginScreen").classList.add("hidden");
+                        document.getElementById("studentDashboard").classList.remove("hidden");
+                        document.getElementById("sidebarStudentName").innerText = loggedInStudent.fullName;
+                        document.getElementById("sidebarStudentMeta").innerText = `Roll: ${loggedInStudent.rollNumber || 'IT87'} | Div ${loggedInStudent.division || 'C'}`;
+                        loadStudentExams();
+                    } else {
+                        error.innerText = "Invalid Student credentials.";
+                        error.classList.remove("hidden");
+                    }
+                } catch(e) {
+                    error.innerText = "Error connecting to server.";
+                    error.classList.remove("hidden");
+                }
+            }
+        }
+
+        function logout() { location.reload(); }
+
+        async function registerStudent() {
+            const user = {
+                fullName: document.getElementById("regName").value,
+                email: document.getElementById("regEmail").value.trim().toLowerCase(),
+                password: document.getElementById("regPass").value,
+                degree: document.getElementById("regDegree").value,
+                branch: document.getElementById("regBranch").value,
+                semester: document.getElementById("regSem").value,
+                division: document.getElementById("regDiv").value,
+                rollNumber: document.getElementById("regRoll").value,
+                role: "STUDENT"
+            };
+
+            const res = await fetch(`${API_URL}/users`, {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(user)
+            });
+
+            if(res.ok) {
+                alert("Student registered successfully in MySQL database!");
+                document.getElementById("regName").value = '';
+                document.getElementById("regEmail").value = '';
+                document.getElementById("regPass").value = '';
+                loadDatabaseStudents();
+            } else {
+                alert("Registration error.");
+            }
+        }
+
+        async function loadDatabaseStudents() {
+            try {
+                const [userRes, resultRes, examRes] = await Promise.all([
+                    fetch(`${API_URL}/users`),
+                    fetch(`${API_URL}/results`),
+                    fetch(`${API_URL}/exams`)
+                ]);
+                const users = await userRes.json();
+                const results = await resultRes.json();
+                const exams = await examRes.json();
+
+                globalStudents = users.filter(u => u.role === "STUDENT");
+                
+                document.getElementById("statTotalStudents").innerText = globalStudents.length;
+                document.getElementById("statTotalExams").innerText = exams.filter(e => e.examName).length;
+                document.getElementById("statTotalSubmissions").innerText = results.length;
+
+                document.getElementById("statDivA").innerText = globalStudents.filter(s => (s.division || 'C') === 'A').length;
+                document.getElementById("statDivB").innerText = globalStudents.filter(s => (s.division || 'C') === 'B').length;
+                document.getElementById("statDivC").innerText = globalStudents.filter(s => (s.division || 'C') === 'C').length;
+
+                const feedBody = document.getElementById("overviewRecentSubmissions");
+                if(feedBody) {
+                    if(results.length === 0) {
+                        feedBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No quiz submissions recorded yet.</td></tr>`;
+                    } else {
+                        feedBody.innerHTML = "";
+                        results.slice(-5).reverse().forEach(r => {
+                            feedBody.innerHTML += `
+                                <tr class="border-b border-[#E6C4B7] hover:bg-[#F2ECE1]/50 font-medium">
+                                    <td class="p-3 font-bold">${r.rollNumber || 'N/A'}</td>
+                                    <td class="p-3">${r.studentName}</td>
+                                    <td class="p-3">Div ${r.division || 'C'}</td>
+                                    <td class="p-3 font-semibold text-slate-800">${r.examName}</td>
+                                    <td class="p-3 font-bold text-[#75B9BF]">${r.score} / ${r.totalQuestions}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                }
+
+                const list = document.getElementById("teacherStudentList");
+                if(!list) return;
+                list.innerHTML = "";
+                globalStudents.forEach(s => {
+                    list.innerHTML += `
+                        <div class="bg-[#F2ECE1] p-4 rounded-xl border border-[#E6C4B7] flex justify-between items-center gap-3">
+                            <div>
+                                <strong class="text-slate-800">${s.fullName}</strong> (${s.rollNumber})<br>
+                                <span class="text-xs text-slate-500">${s.email} | ${s.degree || 'B.Tech'}, ${s.branch || 'IT'}, ${s.semester || 'Sem 6'} (Div ${s.division || 'C'})</span>
+                            </div>
+                            <button onclick="deleteStudent(${s.userId})" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-lg font-bold text-xs">Delete</button>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function deleteStudent(id) {
+            if(!confirm("Are you sure you want to delete this student record?")) return;
+            await fetch(`${API_URL}/users/${id}`, { method: "DELETE" });
+            loadDatabaseStudents();
+        }
+
+        async function createExam() {
+            const examName = document.getElementById("examName").value;
+            const subject = document.getElementById("subject").value;
+            const duration = document.getElementById("duration").value;
+            if(!examName || !subject || !duration) return alert("Please fill out all assessment fields.");
+
+            const exam = { examName, subject, duration, published: false };
+            const res = await fetch(`${API_URL}/exams`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(exam) });
+            if(res.ok) {
+                alert("Assessment deployed successfully!");
+                document.getElementById("examName").value = '';
+                document.getElementById("subject").value = '';
+                document.getElementById("duration").value = '';
+                loadDropdownExams();
+            }
+        }
+
+        async function loadDropdownExams() {
+            try {
+                const res = await fetch(`${API_URL}/exams`);
+                const exams = await res.json();
+                document.getElementById("statTotalExams").innerText = exams.filter(e => e.examName).length;
+                const select = document.getElementById("examSelect");
+                if(!select) return;
+                select.innerHTML = '<option value="">-- Select Active Assessment --</option>';
+                exams.forEach(e => { if(e.id && e.examName) select.innerHTML += `<option value="${e.id}">${e.examName} (${e.subject})</option>`; });
+            } catch(e) { console.error(e); }
+        }
+
+        async function addQuestion() {
+            const examId = document.getElementById("examSelect").value;
+            const questionText = document.getElementById("qText").value;
+            const optionA = document.getElementById("optA").value;
+            const optionB = document.getElementById("optB").value;
+            const optionC = document.getElementById("optC").value;
+            const optionD = document.getElementById("optD").value;
+            const correctOption = document.getElementById("correctOpt").value;
+
+            if(!examId) return alert("Please select an assessment!");
+            const question = { examId: parseInt(examId), questionText, optionA, optionB, optionC, optionD, correctOption };
+            const res = await fetch(`${API_URL}/questions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(question) });
+            if(res.ok) {
+                alert("Question added successfully!");
+                document.getElementById("qText").value = '';
+                document.getElementById("optA").value = '';
+                document.getElementById("optB").value = '';
+                document.getElementById("optC").value = '';
+                document.getElementById("optD").value = '';
+                loadExamQuestionsForTeacher();
+            }
+        }
+
+        async function loadExamQuestionsForTeacher() {
+            const examId = document.getElementById("examSelect").value;
+            const container = document.getElementById("teacherQuestionList");
+            if(!examId) { container.innerHTML = `<p class="text-slate-400 text-xs italic">Select an assessment above.</p>`; return; }
+            const res = await fetch(`${API_URL}/questions/exam/${examId}`);
+            const questions = await res.json();
+            container.innerHTML = "";
+            if(questions.length === 0) { container.innerHTML = `<p class="text-slate-400 text-xs italic">No questions added yet.</p>`; return; }
+            questions.forEach((q, idx) => {
+                container.innerHTML += `
+                    <div class="bg-[#F2ECE1] p-4 rounded-xl border border-[#E6C4B7] flex justify-between items-start gap-4">
+                        <div>
+                            <span class="pastel-teal font-bold text-xs px-2 py-0.5 rounded">Q${idx+1}</span>
+                            <p class="font-bold text-sm text-slate-800 mt-1">${q.questionText}</p>
+                            <p class="text-[11px] text-emerald-700 font-semibold mt-2">✔ Correct Answer: Option ${q.correctOption}</p>
+                        </div>
+                        <button onclick="deleteQuestion(${q.questionId})" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg font-bold text-xs">Delete</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function deleteQuestion(qId) {
+            if(!confirm("Delete question?")) return;
+            await fetch(`${API_URL}/questions/${qId}`, { method: "DELETE" });
+            loadExamQuestionsForTeacher();
+        }
+
+        async function publishCurrentExam() {
+            const examId = document.getElementById("examSelect").value;
+            if(!examId) return alert("Select an exam to publish!");
+            const res = await fetch(`${API_URL}/exams`);
+            const exams = await res.json();
+            const exam = exams.find(e => e.id == examId);
+            exam.published = true;
+            await fetch(`${API_URL}/exams/${examId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(exam) });
+            alert("🚀 Quiz published successfully!");
+        }
+
+        function renderTheoryTable() {
+            const divFilter = document.getElementById("theoryFilterDiv").value;
+            const maxMarks = parseFloat(document.getElementById("theoryMaxMarks").value) || 20;
+            const passMarks = parseFloat(document.getElementById("theoryPassMarks").value) || 8;
+            const subjectSelect = document.getElementById("theorySubjectSelect");
+            const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
+            const semester = document.getElementById("theorySemester").value;
+            
+            document.getElementById("thSubjectHeader").innerHTML = `Sem ${semester} <br> ${subjectName} (Out of ${maxMarks})`;
+
+            const tbody = document.getElementById("theoryMarksTableBody");
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            const filtered = globalStudents.filter(s => (s.division || 'C') === divFilter);
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No students registered in Division ${divFilter}.</td></tr>`;
+                document.getElementById("statEvaluated").innerText = 0;
+                document.getElementById("statPassed").innerText = 0;
+                document.getElementById("statFailed").innerText = 0;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const studentSem = s.semester ? (s.semester.startsWith('Sem') ? s.semester : `Sem ${s.semester}`) : 'Sem 6';
+                tbody.innerHTML += `
+                    <tr class="border-b border-[#E6C4B7] hover:bg-[#F2ECE1]/50">
+                        <td class="p-3 font-bold">${s.rollNumber || 'N/A'}</td>
+                        <td class="p-3 font-semibold">${s.fullName}</td>
+                        <td class="p-3 font-bold text-slate-500">Div ${s.division || 'C'} <br> ${studentSem}</td>
+                        <td class="p-2"><input type="number" id="theory_${s.userId}" oninput="updateTheoryStats()" max="${maxMarks}" min="0" class="w-24 p-2 bg-[#F2ECE1] border border-[#E6C4B7] rounded text-center font-bold" placeholder="0"></td>
+                        <td class="p-3" id="status_${s.userId}"><span class="text-slate-400 italic font-normal">Not Graded</span></td>
+                        <td class="p-3"><button onclick="saveTheoryMarks(${s.userId}, '${subjectName}', '${semester}', ${maxMarks}, ${passMarks})" class="bg-[#75B9BF] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#3E73E8] shadow-xs">Save</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateTheoryStats() {
+            const passMarks = parseFloat(document.getElementById("theoryPassMarks").value) || 8;
+            let evaluated = 0, passed = 0, failed = 0;
+            globalStudents.forEach(s => {
+                const input = document.getElementById(`theory_${s.userId}`);
+                const statusCell = document.getElementById(`status_${s.userId}`);
+                if(input && input.value !== '') {
+                    evaluated++;
+                    const val = parseFloat(input.value);
+                    if(val >= passMarks) { passed++; if(statusCell) statusCell.innerHTML = `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold text-[10px]">PASSED</span>`; }
+                    else { failed++; if(statusCell) statusCell.innerHTML = `<span class="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full font-bold text-[10px]">FAILED</span>`; }
+                }
+            });
+            document.getElementById("statEvaluated").innerText = evaluated;
+            document.getElementById("statPassed").innerText = passed;
+            document.getElementById("statFailed").innerText = failed;
+        }
+
+        async function saveTheoryMarks(userId, subjectName, semester, maxMarks, passMarks) {
+            const input = document.getElementById(`theory_${userId}`);
+            if(!input || input.value === '') return alert("Please enter marks before saving.");
+            const marks = parseFloat(input.value);
+            const status = marks >= passMarks ? "PASSED" : "FAILED";
+
+            const markPayload = { studentId: userId, subjectName, semester, marksObtained: marks, maxMarks, status };
+            const res = await fetch(`${API_URL}/theory-marks`, {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(markPayload)
+            });
+
+            if(res.ok) {
+                alert(`Theory marks saved successfully! Status: ${status}`);
+                updateTheoryStats();
+            } else {
+                alert("Error saving theory marks.");
+            }
+        }
+
+        async function loadStudentExams() {
+            try {
+                const [examRes, resultRes] = await Promise.all([
+                    fetch(`${API_URL}/exams`),
+                    fetch(`${API_URL}/results`)
+                ]);
+                const exams = await examRes.json();
+                const results = await resultRes.json();
+
+                const list = document.getElementById("studentExamList");
+                if(!list) return;
+                list.innerHTML = "";
+                
+                const publishedExams = exams.filter(e => e.published === true);
+                const completedExamIds = results
+                    .filter(r => r.studentId === loggedInStudent.userId)
+                    .map(r => r.examId);
+
+                const availableExams = publishedExams.filter(e => !completedExamIds.includes(e.id));
+
+                if(availableExams.length === 0) {
+                    list.innerHTML = `<div class="custom-card p-6 rounded-2xl border text-center text-slate-400 italic">No pending quizzes available. You have completed all active tests!</div>`;
+                    return;
+                }
+
+                availableExams.forEach(e => {
+                    list.innerHTML += `
+                        <div class="custom-card p-6 rounded-2xl border flex justify-between items-center shadow-xs">
+                            <div><h4 class="text-lg font-bold text-slate-800">${e.examName}</h4><p class="text-xs text-slate-500">${e.subject} | Duration: ${e.duration} mins</p></div>
+                            <button onclick="takeExam(${e.id}, '${e.examName}')" class="bg-[#75B9BF] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3E73E8]">Start Test</button>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadStudentCompletedQuizzes() {
+            try {
+                const res = await fetch(`${API_URL}/results`);
+                const results = await res.json();
+                const list = document.getElementById("studentCompletedList");
+                if(!list) return;
+                list.innerHTML = "";
+                const studentResults = results.filter(r => r.studentId === loggedInStudent.userId);
+                if(studentResults.length === 0) { list.innerHTML = `<div class="custom-card p-6 rounded-2xl border text-center text-slate-400 italic">No completed quizzes yet.</div>`; return; }
+                studentResults.forEach(r => {
+                    list.innerHTML += `
+                        <div class="custom-card p-6 rounded-2xl border flex justify-between items-center shadow-xs">
+                            <div><h4 class="text-lg font-bold text-slate-800">${r.examName}</h4><p class="text-xs text-[#75B9BF] font-bold mt-1">Score: ${r.score} / ${r.totalQuestions}</p></div>
+                            <span class="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full font-bold text-xs">Completed</span>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadStudentTheoryResults() {
+            try {
+                const res = await fetch(`${API_URL}/theory-marks`);
+                const marksList = await res.json();
+                const tbody = document.getElementById("studentTheoryResultsBody");
+                if(!tbody) return;
+                tbody.innerHTML = "";
+
+                const studentMarks = marksList.filter(m => m.studentId === loggedInStudent.userId);
+                if(studentMarks.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">No theory marks graded by faculty for your account yet.</td></tr>`;
+                    return;
+                }
+
+                studentMarks.forEach(m => {
+                    const statusBadge = m.status === 'PASSED' ? 
+                        `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold text-[10px]">PASSED</span>` : 
+                        `<span class="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full font-bold text-[10px]">FAILED</span>`;
+
+                    tbody.innerHTML += `
+                        <tr class="border-b border-[#E6C4B7] hover:bg-[#F2ECE1]/50 font-medium">
+                            <td class="p-3 font-bold">${m.subjectName}</td>
+                            <td class="p-3">Sem ${m.semester}</td>
+                            <td class="p-3 font-bold text-[#75B9BF]">${m.marksObtained} / ${m.maxMarks}</td>
+                            <td class="p-3">${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function takeExam(examId, examName) {
+            currentActiveExamId = examId;
+            currentActiveExamName = examName;
+            document.getElementById("stuTab-active").classList.add("hidden");
+            document.getElementById("quizSection").classList.remove("hidden");
+            document.getElementById("quizTitle").innerText = examName;
+            
+            const res = await fetch(`${API_URL}/questions/exam/${examId}`);
+            currentQuizQuestions = await res.json();
+            const qDiv = document.getElementById("quizQuestions");
+            qDiv.innerHTML = "";
+            currentQuizQuestions.forEach((q, idx) => {
+                qDiv.innerHTML += `
+                    <div class="bg-[#F2ECE1] p-5 rounded-xl border border-[#E6C4B7]">
+                        <p class="font-bold mb-3 text-sm text-slate-800">Q${idx+1}. ${q.questionText}</p>
+                        <label class="block mb-2 text-sm cursor-pointer"><input type="radio" name="q${q.questionId}" value="A" class="mr-2"> A) ${q.optionA}</label>
+                        <label class="block mb-2 text-sm cursor-pointer"><input type="radio" name="q${q.questionId}" value="B" class="mr-2"> B) ${q.optionB}</label>
+                        <label class="block mb-2 text-sm cursor-pointer"><input type="radio" name="q${q.questionId}" value="C" class="mr-2"> C) ${q.optionC}</label>
+                        <label class="block mb-2 text-sm cursor-pointer"><input type="radio" name="q${q.questionId}" value="D" class="mr-2"> D) ${q.optionD}</label>
+                    </div>
+                `;
+            });
+        }
+
+        async function submitQuiz() {
+            let score = 0;
+            currentQuizQuestions.forEach(q => {
+                const sel = document.querySelector(`input[name="q${q.questionId}"]:checked`);
+                if(sel && sel.value === q.correctOption) score++;
+            });
+
+            if(loggedInStudent) {
+                const resultPayload = {
+                    examId: currentActiveExamId, examName: currentActiveExamName,
+                    studentId: loggedInStudent.userId, studentName: loggedInStudent.fullName,
+                    rollNumber: loggedInStudent.rollNumber, division: loggedInStudent.division || 'C',
+                    score: score, totalQuestions: currentQuizQuestions.length
+                };
+                await fetch(`${API_URL}/results`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(resultPayload) });
+            }
+
+            document.getElementById("quizSection").classList.add("hidden");
+            document.getElementById("resultSection").classList.remove("hidden");
+            document.getElementById("scoreDisplay").innerText = `${score} / ${currentQuizQuestions.length}`;
+        }
+
+        async function loadResponseExamDropdown() {
+            const res = await fetch(`${API_URL}/exams`);
+            const exams = await res.json();
+            const select = document.getElementById("responseExamSelect");
+            if(!select) return;
+            select.innerHTML = '<option value="">-- Select Assessment --</option>';
+            exams.forEach(e => { if(e.id && e.examName) select.innerHTML += `<option value="${e.id}">${e.examName} (${e.subject})</option>`; });
+        }
+
+        async function loadExamResponses() {
+            const examId = document.getElementById("responseExamSelect").value;
+            const tbody = document.getElementById("quizResponsesTableBody");
+            if(!examId) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Select an exam.</td></tr>`; return; }
+            const res = await fetch(`${API_URL}/results`);
+            const results = await res.json();
+            const filtered = results.filter(r => r.examId == examId);
+            tbody.innerHTML = "";
+            if(filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No submissions yet.</td></tr>`; return; }
+            filtered.forEach(r => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-[#E6C4B7] hover:bg-[#F2ECE1]/50 font-medium">
+                        <td class="p-3 font-bold">${r.rollNumber || 'N/A'}</td><td class="p-3">${r.studentName}</td><td class="p-3">Div ${r.division}</td>
+                        <td class="p-3 font-bold text-[#75B9BF]">${r.score} / ${r.totalQuestions}</td>
+                        <td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold text-[10px]">Submitted</span></td>
+                        <td class="p-3"><button onclick="allowRetake(${r.resultId})" class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg font-bold text-xs">🔄 Allow Retake</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function allowRetake(resultId) {
+            if(!confirm("Grant retake permission?")) return;
+            await fetch(`${API_URL}/results/${resultId}`, { method: "DELETE" });
+            alert("Retake granted!");
+            loadExamResponses();
+        }
+
+        function downloadTheoryExcel() {
+            const divFilter = document.getElementById("theoryFilterDiv").value;
+            const subjectSelect = document.getElementById("theorySubjectSelect");
+            const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
+            const semester = document.getElementById("theorySemester").value;
+            const maxMarks = document.getElementById("theoryMaxMarks").value;
+            const passMarks = document.getElementById("theoryPassMarks").value;
+            const filtered = globalStudents.filter(s => (s.division || 'C') === divFilter);
+            if(filtered.length === 0) return alert("No students found.");
+
+            const reportData = filtered.map(s => {
+                const input = document.getElementById(`theory_${s.userId}`);
+                const marks = input && input.value !== '' ? input.value : 'Not Graded';
+                const statusVal = marks !== 'Not Graded' ? (parseFloat(marks) >= parseFloat(passMarks) ? 'PASSED' : 'FAILED') : 'Not Graded';
+                return { "Roll No": s.rollNumber || 'N/A', "Student Name": s.fullName, "Semester": `Sem ${semester}`, "Division": `Div ${s.division || 'C'}`, "Subject": subjectName, "Max Marks": maxMarks, "Marks Obtained": marks, "Result Status": statusVal };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(reportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Theory Marks Report");
+            XLSX.writeFile(wb, `KCCEMSR_Theory_Report_Sem${semester}_Div${divFilter}.xlsx`);
+        }
+
+        function downloadExcel() {
+            const data = globalStudents.map(s => ({ Name: s.fullName, Email: s.email, RollNo: s.rollNumber, Semester: s.semester, Division: s.division, Degree: s.degree }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Master Student Roster");
+            XLSX.writeFile(wb, "KCCEMSR_Master_Student_Report.xlsx");
+        }
+    </script>
+</body>
+</html>
